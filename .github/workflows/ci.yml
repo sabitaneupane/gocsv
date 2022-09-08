@@ -2,7 +2,9 @@ name: "CI: gocsv package"
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - master
   push:
     branches:
       - main
@@ -13,40 +15,28 @@ jobs:
     name: Build, Test & Scan
     runs-on: ubuntu-latest
     env:
-      ACTIONS_BUILD_ID: ${{ github.run_id }}
       PR_COMMENT_URL: ${{ github.event.pull_request.comments_url }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          ref: 'master'
 
-      - name: Extract Go Version
-        id: set-go-version
-        run: |
-          go_version=$(awk '/^go/{print $NF}' go.mod)
-          [ -z "$go_version" ] && go_version=^1.15
-          echo "::set-output name=go_version::$(echo $go_version)"
-      
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ steps.set-go-version.outputs.go_version }}
-      
       - name: Get package version from master branch
         id: master_version
         run: |
           VERSION=$(cat ./.version)
           echo "::set-output name=name::$VERSION"
 
+      - uses: actions/checkout@v2
+
       - name: Get package version from current branch
         id: current_version
         run: |
           VERSION=$(cat ./.version)
           echo "::set-output name=name::$VERSION"
-     
+
       - name: Compare the package version
         id: version_check
         run: |
@@ -57,7 +47,7 @@ jobs:
           else
             echo "::set-output name=flag::0"
           fi
-    
+
       - name: Suggest PR Author to update version
         if: ${{ steps.version_check.outputs.flag == '1' }}
         run: |
@@ -70,6 +60,7 @@ jobs:
             -H "Authorization: token $GITHUB_TOKEN" \
             --data '{"body": "Please change your version name if necessary. Currently, the master branch has version ${{ steps.master_version.outputs.name }}"}'
           fi
+
 
       - name: Build
         run: go build -v ./...
