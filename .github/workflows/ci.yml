@@ -61,12 +61,12 @@ jobs:
     
       - name: Suggest PR Author to update version
         if: ${{ steps.version_check.outputs.flag == '1' }}
-          # PR_COMMENT_URL var won't be set if the workflow is triggered by master push
         run: |
-          if [ ! -z "$PR_COMMENT_URL" ]
+          # PR_COMMENT_URL var won't be set if the workflow is triggered by master push
           # so, version check comment will only be posted when triggered by pull request
-            curl -X POST $PR_COMMENT_URL \
+          if [ ! -z "$PR_COMMENT_URL" ]
           then
+            curl -X POST $PR_COMMENT_URL \
             -H "Content-Type: application/vnd.github.v3.raw+json " \
             -H "Authorization: token $GITHUB_TOKEN" \
             --data '{"body": "Please change your version name if necessary. Currently, the master branch has version ${{ steps.master_version.outputs.name }}"}'
