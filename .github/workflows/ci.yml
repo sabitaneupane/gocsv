@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ACTIONS_BUILD_ID: ${{ github.run_id }}
+      PR_COMMENT_URL: ${{ github.event.pull_request.comments_url }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
       - name: Checkout
@@ -33,6 +36,42 @@ jobs:
         with:
           go-version: ${{ steps.set-go-version.outputs.go_version }}
       
+      - name: Get package version from master branch
+        id: master_version
+        run: |
+          VERSION=$(cat ./.version)
+          echo "::set-output name=name::$VERSION"
+
+      - name: Get package version from current branch
+        id: current_version
+        run: |
+          VERSION=$(cat ./.version)
+          echo "::set-output name=name::$VERSION"
+     
+      - name: Compare the package version
+        id: version_check
+        run: |
+          MAIN_VERSION=${{ steps.master_version.outputs.name }}
+          CURR_VERSION=${{ steps.current_version.outputs.name }}
+          if [ "$(printf '%s\n' "$CURR_VERSION" "$MAIN_VERSION" | sort -V | tail -n1)" = "$MAIN_VERSION" ]; then
+            echo "::set-output name=flag::1"
+          else
+            echo "::set-output name=flag::0"
+          fi
+    
+      - name: Suggest PR Author to update version
+        if: ${{ steps.version_check.outputs.flag == '1' }}
+          # PR_COMMENT_URL var won't be set if the workflow is triggered by master push
+        run: |
+          if [ ! -z "$PR_COMMENT_URL" ]
+          # so, version check comment will only be posted when triggered by pull request
+            curl -X POST $PR_COMMENT_URL \
+          then
+            -H "Content-Type: application/vnd.github.v3.raw+json " \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            --data '{"body": "Please change your version name if necessary. Currently, the master branch has version ${{ steps.master_version.outputs.name }}"}'
+          fi
+
       - name: Build
         run: go build -v ./...
 
@@ -44,5 +83,5 @@ jobs:
         with:
           projectBaseDir: ./
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: $GITHUB_TOKEN
+          SONAR_TOKEN: $SONAR_TOKEN
