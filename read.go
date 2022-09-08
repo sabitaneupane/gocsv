@@ -7,7 +7,7 @@ import (
 )
 
 func Reader(filename string, hasHeader bool) (data CSVData, err error) {
-	// Open the file
+	// open the file
 	recordFile, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("unable to read input file "+filename, err)
@@ -15,18 +15,19 @@ func Reader(filename string, hasHeader bool) (data CSVData, err error) {
 	}
 	defer recordFile.Close()
 
-	// Initialize the reader
+	// initialize the reader
 	csvReader := csv.NewReader(recordFile)
 
-	// Read all the records
+	// read all the records
 	records, err := csvReader.ReadAll()
 	if err != nil {
 		fmt.Println("unable to parse file as CSV for "+filename, err)
 		return
 	}
 
+	// verify is csv file is empty
 	if len(records) == 0 {
-		fmt.Println("no CSV records found"+filename, err)
+		fmt.Println("empty csv file")
 		err = ErrEmptyCSVFile
 		return
 	}
@@ -41,14 +42,14 @@ func Reader(filename string, hasHeader bool) (data CSVData, err error) {
 
 	if err != nil {
 		fmt.Println("an error encountered", err)
+		return
 	}
 
 	return
 }
 
 func formatCSVReadData(records [][]string, hasHeader bool) (newData CSVData, err error) {
-
-	// Using the records content
+	// using the records content
 	if hasHeader {
 		newData = CSVData{
 			Headers: records[0],
@@ -60,6 +61,7 @@ func formatCSVReadData(records [][]string, hasHeader bool) (newData CSVData, err
 		}
 	}
 
+	//  format csv header to CSVData format
 	var headers []string
 	if hasHeader {
 		for _, h := range newData.Headers {
@@ -68,8 +70,8 @@ func formatCSVReadData(records [][]string, hasHeader bool) (newData CSVData, err
 		}
 	}
 
+	//  format csv body to CSVData format
 	var body [][]string
-
 	for _, items := range newData.Body {
 		var val string
 		var row []string
