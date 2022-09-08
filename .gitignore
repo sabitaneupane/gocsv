@@ -16,5 +16,4 @@
 .vscode
 
 # File generate while working and testing
-check.go
 write.csv
