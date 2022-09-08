@@ -10,7 +10,7 @@ func Reader(filename string, hasHeader bool) (data CSVData, err error) {
 	// Open the file
 	recordFile, err := os.Open(filename)
 	if err != nil {
-		fmt.Println("Unable to read input file "+filename, err)
+		fmt.Println("unable to read input file "+filename, err)
 		return
 	}
 	defer recordFile.Close()
@@ -21,26 +21,26 @@ func Reader(filename string, hasHeader bool) (data CSVData, err error) {
 	// Read all the records
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		fmt.Println("Unable to parse file as CSV for "+filename, err)
+		fmt.Println("unable to parse file as CSV for "+filename, err)
 		return
 	}
 
 	if len(records) == 0 {
-		fmt.Println("No CSV records found"+filename, err)
+		fmt.Println("no CSV records found"+filename, err)
 		err = ErrEmptyCSVFile
 		return
 	}
 
 	err = recordFile.Close()
 	if err != nil {
-		fmt.Println("An error encountered while closing file::", err)
+		fmt.Println("an error encountered while closing file::", err)
 		return
 	}
 
 	data, err = formatCSVReadData(records, hasHeader)
 
 	if err != nil {
-		fmt.Println("An error encountered", err)
+		fmt.Println("an error encountered", err)
 	}
 
 	return

@@ -9,7 +9,7 @@ func Writer(filename string, data CSVData, hasHeader bool) (err error) {
 	// Open the file
 	f, err := os.Create(filename)
 	if err != nil {
-		fmt.Println("An error encountered when creating file::", err)
+		fmt.Println("an error encountered when creating file::", err)
 	}
 
 	// Format the csv data
@@ -18,7 +18,7 @@ func Writer(filename string, data CSVData, hasHeader bool) (err error) {
 	// Write all the records
 	_, err = f.WriteString(newData) // returns error
 	if err != nil {
-		fmt.Println("An error encountered writing to a file::", err)
+		fmt.Println("an error encountered writing to a file::", err)
 	}
 	return
 }
