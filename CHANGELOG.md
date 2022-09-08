@@ -1,8 +1,8 @@
 # Changelog
 
-## [2022-09-08 v0.0.3](https://github.com/sabitaneupane/gocsv/pull/5)
+## [2022-09-08 v0.0.4](https://github.com/sabitaneupane/gocsv/pull/5)
 ### Fixed
-- Refactor code and fixed Sonarcloud setup and CI workflow
+- Refactor functions and fixed CI workflow
 
 ## [2022-09-08 v0.0.3](https://github.com/sabitaneupane/gocsv/pull/4)
 ### Added
