@@ -38,17 +38,12 @@ func Reader(filename string, hasHeader bool) (data CSVData, err error) {
 		return
 	}
 
-	data, err = formatCSVReadData(records, hasHeader)
-
-	if err != nil {
-		fmt.Println("an error encountered", err)
-		return
-	}
+	data = formatCSVReadData(records, hasHeader)
 
 	return
 }
 
-func formatCSVReadData(records [][]string, hasHeader bool) (newData CSVData, err error) {
+func formatCSVReadData(records [][]string, hasHeader bool) (newData CSVData) {
 	// using the records content
 	if hasHeader {
 		newData = CSVData{

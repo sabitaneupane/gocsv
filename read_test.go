@@ -36,9 +36,9 @@ func TestWriter_Reader(t *testing.T) {
 		})
 	}
 
-	t.Log("When csv read fails")
+	t.Log("When csv file is empty")
 	{
-		t.Run("returns exact text", func(t *testing.T) {
+		t.Run("returns error", func(t *testing.T) {
 			var filename string = "./example/empty.csv"
 			var hasHeader bool = true
 			var expectedErr error = ErrEmptyCSVFile
@@ -46,6 +46,21 @@ func TestWriter_Reader(t *testing.T) {
 			_, actualErr := Reader(filename, hasHeader)
 
 			if actualErr != expectedErr {
+				t.Errorf("expected: %s got: %s \n", actualErr, expectedErr)
+			}
+		})
+	}
+
+	t.Log("When csv file is not found")
+	{
+		t.Run("returns error", func(t *testing.T) {
+			var filename string = "./sample.csv"
+			var hasHeader bool = true
+			var expectedErr error = nil
+
+			_, actualErr := Reader(filename, hasHeader)
+
+			if actualErr == nil {
 				t.Errorf("expected: %s got: %s \n", actualErr, expectedErr)
 			}
 		})
@@ -113,7 +128,7 @@ func TestWriter_formatCSVReadData(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		actual, _ := formatCSVReadData(tc.data, tc.hasHeader)
+		actual := formatCSVReadData(tc.data, tc.hasHeader)
 
 		if checkAsStrings(actual, tc.expected) {
 			t.Errorf("%s: expected: %v got: %s \n", tc.desc, tc.expected, actual)
