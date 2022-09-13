@@ -1,42 +1,77 @@
-name: gocsv test
+name: "CI: gocsv package"
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+    branches:
+      - main
+      - master
+  push:
+    branches:
+      - main
+      - master
 
 jobs:
-
   build-test-scan:
-    name: Build Test and Scan
+    name: Build, Test & Scan
     runs-on: ubuntu-latest
     env:
-      ACTIONS_BUILD_ID: ${{ github.run_id }}
+      PR_COMMENT_URL: ${{ github.event.pull_request.comments_url }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v3
+        with:
+          ref: 'master'
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.18
+      - name: Get package version from master branch
+        id: master_version
+        run: |
+          VERSION=$(cat ./.version)
+          echo "::set-output name=name::$VERSION"
 
-    - name: Build
-      run: go build -v ./...
+      - uses: actions/checkout@v2
 
-    - name: Test
-      run: make test
+      - name: Get package version from current branch
+        id: current_version
+        run: |
+          VERSION=$(cat ./.version)
+          echo "::set-output name=name::$VERSION"
 
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      with:
-        projectBaseDir: ./
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Compare the package version
+        id: version_check
+        run: |
+          MAIN_VERSION=${{ steps.master_version.outputs.name }}
+          CURR_VERSION=${{ steps.current_version.outputs.name }}
+          if [ "$(printf '%s\n' "$CURR_VERSION" "$MAIN_VERSION" | sort -V | tail -n1)" = "$MAIN_VERSION" ]; then
+            echo "::set-output name=flag::1"
+          else
+            echo "::set-output name=flag::0"
+          fi
+
+      - name: Suggest PR Author to update version
+        if: ${{ steps.version_check.outputs.flag == '1' }}
+        run: |
+          # PR_COMMENT_URL var won't be set if the workflow is triggered by master push
+          # so, version check comment will only be posted when triggered by pull request
+          if [ ! -z "$PR_COMMENT_URL" ]
+          then
+            curl -X POST $PR_COMMENT_URL \
+            -H "Content-Type: application/vnd.github.v3.raw+json " \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            --data '{"body": "Please change your version name if necessary. Currently, the master branch has version ${{ steps.master_version.outputs.name }}"}'
+          fi
+
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: make test
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: ./
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

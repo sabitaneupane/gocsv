@@ -6,19 +6,21 @@ import (
 )
 
 func Writer(filename string, data CSVData, hasHeader bool) (err error) {
-	// Open the file
+	// open the file
 	f, err := os.Create(filename)
 	if err != nil {
-		fmt.Println("An error encountered when creating file::", err)
+		fmt.Println("an error encountered when creating file::", err)
+		return
 	}
 
-	// Format the csv data
+	// format the csv data
 	newData := StringMapper(data, hasHeader)
 
-	// Write all the records
-	_, err = f.WriteString(newData) // returns error
+	// write all the records
+	_, err = f.WriteString(newData)
 	if err != nil {
-		fmt.Println("An error encountered writing to a file::", err)
+		fmt.Println("an error encountered writing to a file::", err)
+		return
 	}
 	return
 }
@@ -28,18 +30,18 @@ func StringMapper(data CSVData, hasHeader bool) (content string) {
 	separator := ""
 	lineBreaker := "\n"
 
+	// checks if csv containes headers and format csvdata to string
 	if hasHeader {
 		for _, h := range data.Headers {
 			header := Sanitizer(h)
 
 			content += separator + header
 			separator = ","
-
 		}
-
 		content += lineBreaker
 	}
 
+	// format csvdata to string
 	for _, items := range data.Body {
 		separator = ""
 		var val string
@@ -52,7 +54,6 @@ func StringMapper(data CSVData, hasHeader bool) (content string) {
 
 		}
 		content += lineBreaker
-
 	}
 
 	return

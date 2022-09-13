@@ -5,40 +5,47 @@ import (
 )
 
 func TestWriter_Writer(t *testing.T) {
-	cases := []struct {
-		desc        string
-		fileName    string
-		hasHeader   bool
-		data        CSVData
-		expectedErr error
-	}{
-		{
-			"Return exact text",
-			"../write.csv",
-			true,
-			CSVData{
-				Headers: []string{"firstname", "lastname", "age"},
-				Body: [][]string{
-					{
-						"=cmd|' /C calc'!A0",
-						"Doe",
-						"23",
-					},
-					{
-						"John",
-						`=HYPERLINK("http://nsabita.com.np/", "View More")`,
-						"59",
-					},
-				},
+	var data CSVData = CSVData{
+		Headers: []string{"firstname", "lastname", "age"},
+		Body: [][]string{
+			{
+				"=cmd|' /C calc'!A0",
+				"Doe",
+				"23",
 			},
-			nil,
+			{
+				"John",
+				`=HYPERLINK("http://nsabita.com.np/", "View More")`,
+				"59",
+			},
 		},
 	}
-	for _, tc := range cases {
-		actualErr := Writer(tc.fileName, tc.data, tc.hasHeader)
-		if actualErr != tc.expectedErr {
-			t.Errorf("%s: expected: %s got: %s \n", tc.desc, actualErr, tc.expectedErr)
-		}
+	t.Log("When csv write success")
+	{
+		t.Run("returns exact text", func(t *testing.T) {
+			var fileName string = "./example/write.csv"
+			var hasHeader bool = true
+			var expectedErr error = nil
+
+			actualErr := Writer(fileName, data, hasHeader)
+			if actualErr != expectedErr {
+				t.Errorf("expected: %s got: %s \n", actualErr, expectedErr)
+			}
+		})
+	}
+
+	t.Log("When csv write fails")
+	{
+		t.Run("returns error", func(t *testing.T) {
+			var fileName string = "./sample/write.csv"
+			var hasHeader bool = true
+			var expectedErr error = nil
+
+			actualErr := Writer(fileName, data, hasHeader)
+			if actualErr == expectedErr {
+				t.Errorf("expected: %s got: %s \n", actualErr, expectedErr)
+			}
+		})
 	}
 }
 
@@ -122,15 +129,9 @@ func TestWriter_StringMapper(t *testing.T) {
 
 	for _, tc := range cases {
 		got := StringMapper(tc.data, tc.hasHeader)
-		ExpectEqual(t, got, tc.expected)
-	}
-}
 
-func ExpectEqual(t *testing.T, got, expected interface{}) bool {
-	if got != expected {
-		t.Helper()
-		t.Errorf("\n Expected: \n%v \n\n Got: \n%v", expected, got)
-		return false
+		if got != tc.expected {
+			t.Errorf("%s: expected: %s got: %s \n", tc.desc, tc.expected, got)
+		}
 	}
-	return true
 }

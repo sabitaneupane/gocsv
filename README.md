@@ -17,7 +17,7 @@ The gocsv package aims to provide easy CSV
 ## Installation
 
 ```
-go install github.com/sabitaneupane/gocsv@latest
+go get github.com/sabitaneupane/gocsv@latest
 ```
 
 ## Requirement

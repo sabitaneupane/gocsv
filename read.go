@@ -7,48 +7,44 @@ import (
 )
 
 func Reader(filename string, hasHeader bool) (data CSVData, err error) {
-	// Open the file
+	// open the file
 	recordFile, err := os.Open(filename)
 	if err != nil {
-		fmt.Println("Unable to read input file "+filename, err)
+		fmt.Println("unable to read input file "+filename, err)
 		return
 	}
 	defer recordFile.Close()
 
-	// Initialize the reader
+	// initialize the reader
 	csvReader := csv.NewReader(recordFile)
 
-	// Read all the records
+	// read all the records
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		fmt.Println("Unable to parse file as CSV for "+filename, err)
+		fmt.Println("unable to parse file as CSV for "+filename, err)
 		return
 	}
 
+	// verify is csv file is empty
 	if len(records) == 0 {
-		fmt.Println("No CSV records found"+filename, err)
+		fmt.Println("empty csv file")
 		err = ErrEmptyCSVFile
 		return
 	}
 
 	err = recordFile.Close()
 	if err != nil {
-		fmt.Println("An error encountered while closing file::", err)
+		fmt.Println("an error encountered while closing file::", err)
 		return
 	}
 
-	data, err = formatCSVReadData(records, hasHeader)
-
-	if err != nil {
-		fmt.Println("An error encountered", err)
-	}
+	data = formatCSVReadData(records, hasHeader)
 
 	return
 }
 
-func formatCSVReadData(records [][]string, hasHeader bool) (newData CSVData, err error) {
-
-	// Using the records content
+func formatCSVReadData(records [][]string, hasHeader bool) (newData CSVData) {
+	// using the records content
 	if hasHeader {
 		newData = CSVData{
 			Headers: records[0],
@@ -60,6 +56,7 @@ func formatCSVReadData(records [][]string, hasHeader bool) (newData CSVData, err
 		}
 	}
 
+	//  format csv header to CSVData format
 	var headers []string
 	if hasHeader {
 		for _, h := range newData.Headers {
@@ -68,8 +65,8 @@ func formatCSVReadData(records [][]string, hasHeader bool) (newData CSVData, err
 		}
 	}
 
+	//  format csv body to CSVData format
 	var body [][]string
-
 	for _, items := range newData.Body {
 		var val string
 		var row []string
