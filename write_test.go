@@ -1,10 +1,12 @@
 package gocsv
 
 import (
+	"os"
 	"testing"
 )
 
 func TestWriter_Writer(t *testing.T) {
+
 	cases := []struct {
 		desc        string
 		fileName    string
@@ -14,7 +16,7 @@ func TestWriter_Writer(t *testing.T) {
 	}{
 		{
 			"Return exact text",
-			"../write.csv",
+			"./example/write.csv",
 			true,
 			CSVData{
 				Headers: []string{"firstname", "lastname", "age"},
@@ -34,8 +36,20 @@ func TestWriter_Writer(t *testing.T) {
 			nil,
 		},
 	}
+
 	for _, tc := range cases {
-		actualErr := Writer(tc.fileName, tc.data, tc.hasHeader)
+		f, err := os.Create(tc.fileName)
+		if err != nil {
+			t.Errorf("Did not expect error but got %s", err.Error())
+		}
+
+		newData := StringMapper(tc.data, tc.hasHeader)
+
+		_, actualErr := f.WriteString(newData)
+		if err != nil {
+			t.Errorf("Did not expect error but got %s", err.Error())
+		}
+
 		if actualErr != tc.expectedErr {
 			t.Errorf("%s: expected: %s got: %s \n", tc.desc, actualErr, tc.expectedErr)
 		}
@@ -122,15 +136,9 @@ func TestWriter_StringMapper(t *testing.T) {
 
 	for _, tc := range cases {
 		got := StringMapper(tc.data, tc.hasHeader)
-		ExpectEqual(t, got, tc.expected)
-	}
-}
 
-func ExpectEqual(t *testing.T, got, expected interface{}) bool {
-	if got != expected {
-		t.Helper()
-		t.Errorf("\n Expected: \n%v \n\n Got: \n%v", expected, got)
-		return false
+		if got != tc.expected {
+			t.Errorf("%s: expected: %s got: %s \n", tc.desc, tc.expected, got)
+		}
 	}
-	return true
 }
