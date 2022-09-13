@@ -1,58 +1,51 @@
 package gocsv
 
 import (
-	"os"
 	"testing"
 )
 
 func TestWriter_Writer(t *testing.T) {
-
-	cases := []struct {
-		desc        string
-		fileName    string
-		hasHeader   bool
-		data        CSVData
-		expectedErr error
-	}{
-		{
-			"Return exact text",
-			"./example/write.csv",
-			true,
-			CSVData{
-				Headers: []string{"firstname", "lastname", "age"},
-				Body: [][]string{
-					{
-						"=cmd|' /C calc'!A0",
-						"Doe",
-						"23",
-					},
-					{
-						"John",
-						`=HYPERLINK("http://nsabita.com.np/", "View More")`,
-						"59",
-					},
-				},
+	var data CSVData = CSVData{
+		Headers: []string{"firstname", "lastname", "age"},
+		Body: [][]string{
+			{
+				"=cmd|' /C calc'!A0",
+				"Doe",
+				"23",
 			},
-			nil,
+			{
+				"John",
+				`=HYPERLINK("http://nsabita.com.np/", "View More")`,
+				"59",
+			},
 		},
 	}
+	t.Log("When csv write success")
+	{
+		t.Run("returns exact text", func(t *testing.T) {
+			var fileName string = "./example/write.csv"
+			var hasHeader bool = true
+			var expectedErr error = nil
 
-	for _, tc := range cases {
-		f, err := os.Create(tc.fileName)
-		if err != nil {
-			t.Errorf("Did not expect error but got %s", err.Error())
-		}
+			actualErr := Writer(fileName, data, hasHeader)
+			if actualErr != expectedErr {
+				t.Errorf("expected: %s got: %s \n", actualErr, expectedErr)
+			}
+		})
+	}
 
-		newData := StringMapper(tc.data, tc.hasHeader)
+	t.Log("When csv write fails")
+	{
+		t.Run("returns error", func(t *testing.T) {
+			var fileName string = "./sample/write.csv"
+			var hasHeader bool = true
+			var expectedErr error = nil
 
-		_, actualErr := f.WriteString(newData)
-		if err != nil {
-			t.Errorf("Did not expect error but got %s", err.Error())
-		}
-
-		if actualErr != tc.expectedErr {
-			t.Errorf("%s: expected: %s got: %s \n", tc.desc, actualErr, tc.expectedErr)
-		}
+			actualErr := Writer(fileName, data, hasHeader)
+			if actualErr == expectedErr {
+				t.Errorf("expected: %s got: %s \n", actualErr, expectedErr)
+			}
+		})
 	}
 }
 

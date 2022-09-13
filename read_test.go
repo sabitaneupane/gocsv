@@ -1,76 +1,54 @@
 package gocsv
 
 import (
-	"encoding/csv"
 	"fmt"
-	"os"
 	"testing"
 )
 
 func TestWriter_Reader(t *testing.T) {
-	cases := []struct {
-		desc      string
-		filename  string
-		hasHeader bool
-		expected  CSVData
-	}{
-		{
-			"Return exact text",
-			"./example/sample.csv",
-			true,
-			CSVData{
-				Headers: []string{"firstname", "lastname", "age"},
-				Body: [][]string{
-					{
-						"=cmd|' /C calc'!A0",
-						"Doe",
-						"23",
-					},
-					{
-						"John",
-						"Doe",
-						"59",
-					},
-				},
+	var expectedData CSVData = CSVData{
+		Headers: []string{"firstname", "lastname", "age"},
+		Body: [][]string{
+			{
+				"=cmd|' /C calc'!A0",
+				"Doe",
+				"23",
+			},
+			{
+				"John",
+				"Doe",
+				"59",
 			},
 		},
 	}
-	for _, tc := range cases {
 
-		recordFile, err := os.Open(tc.filename)
-		if err != nil {
-			t.Errorf("Did not expect error but got %s", err.Error())
-		}
-		defer recordFile.Close()
+	t.Log("When csv read success")
+	{
+		t.Run("returns exact text", func(t *testing.T) {
+			var filename string = "./example/sample.csv"
+			var hasHeader bool = true
 
-		csvReader := csv.NewReader(recordFile)
-		records, err := csvReader.ReadAll()
-		if err != nil {
-			t.Errorf("Did not expect error but got %s", err.Error())
-		}
+			actual, _ := Reader(filename, hasHeader)
 
-		// verify is csv file is empty
-		if len(records) == 0 {
-			err = ErrEmptyCSVFile
-			t.Errorf("Did not expect error but got %s", err.Error())
-			return
-		}
+			if checkAsStrings(actual, expectedData) {
+				t.Errorf("expected: %v got: %s \n", expectedData, actual)
+			}
+		})
+	}
 
-		err = recordFile.Close()
-		if err != nil {
-			t.Errorf("Did not expect error but got %s", err.Error())
-		}
+	t.Log("When csv read fails")
+	{
+		t.Run("returns exact text", func(t *testing.T) {
+			var filename string = "./example/empty.csv"
+			var hasHeader bool = true
+			var expectedErr error = ErrEmptyCSVFile
 
-		actualData, err := formatCSVReadData(records, tc.hasHeader)
+			_, actualErr := Reader(filename, hasHeader)
 
-		if err != nil {
-			fmt.Println("an error encountered", err)
-			return
-		}
-
-		if checkAsStrings(actualData, tc.expected) {
-			t.Errorf("%s: expected: %v got: %s \n", tc.desc, tc.expected, actualData)
-		}
+			if actualErr != expectedErr {
+				t.Errorf("expected: %s got: %s \n", actualErr, expectedErr)
+			}
+		})
 	}
 }
 
